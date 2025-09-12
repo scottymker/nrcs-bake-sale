@@ -2,7 +2,10 @@
   publish   = "."
   functions = "netlify/functions"
 
-# Pretty /api/* routes to functions
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["node-fetch"]
+
 [[redirects]]
   from = "/api/*"
   to   = "/.netlify/functions/:splat"
