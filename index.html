@@ -1,1 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NRCS Bake Sale Preorders</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>NRCS Bake Sale Preorders</h1>
+      <p class="muted"><b>Due Friday, Sept 26, 2025</b></p>
+      <p class="muted">Contact <b>Cassie Spaans</b> (call/text) <a href="tel:16056805216">605-680-5216</a></p>
+      <p class="muted"><em>*Please include payment with your order, checks can be made payable to Rebecca Circle*</em></p>
+      <p class="muted">Stop by to pick up your order and shop our bake sale on <b>Saturday, October 18</b>, at the Corsica Legion from <b>7:30am–11:30am!</b></p>
+    </header>
+
+    <form id="order-form" novalidate>
+      <section class="card">
+        <div class="grid2">
+          <label class="field">
+            <span>Name</span>
+            <input type="text" name="customerName" required placeholder="Your name">
+          </label>
+          <label class="field">
+            <span>Phone #</span>
+            <input type="tel" name="phone" required placeholder="555-555-5555">
+          </label>
+        </div>
+      </section>
+
+      <!-- Stroopwafels -->
+      <section class="card">
+        <h2>*Stroopwafels (Frozen)</h2>
+        <table class="items">
+          <thead><tr><th>Item</th><th class="right">Price</th><th class="qty">Qty</th><th class="right">Subtotal</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>One Dozen</td>
+              <td class="right">$15.00</td>
+              <td class="qty">
+                <input type="number" min="0" step="1" class="qty-input"
+                  data-category="Stroopwafels (Frozen)" data-item="One Dozen" data-price="15">
+              </td>
+              <td class="right line-subtotal">$0.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Pies -->
+      <section class="card">
+        <h2>*Pies (Frozen, all fruit pies unbaked)</h2>
+        <table class="items">
+          <thead><tr><th>Item</th><th class="right">Price</th><th class="qty">Qty</th><th class="right">Subtotal</th></tr></thead>
+          <tbody>
+            <tr><td>Apple</td><td class="right">$12.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pies" data-item="Apple" data-price="12"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Pumpkin (Baked)</td><td class="right">$12.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pies" data-item="Pumpkin (Baked)" data-price="12"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Peach</td><td class="right">$12.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pies" data-item="Peach" data-price="12"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Blueberry</td><td class="right">$12.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pies" data-item="Blueberry" data-price="12"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Cherry</td><td class="right">$12.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pies" data-item="Cherry" data-price="12"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Pecan (Baked)</td><td class="right">$12.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pies" data-item="Pecan (Baked)" data-price="12"></td><td class="right line-subtotal">$0.00</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Soup -->
+      <section class="card">
+        <h2>*Soup (1/2 Gal, Frozen)</h2>
+        <table class="items">
+          <thead><tr><th>Item</th><th class="right">Price</th><th class="qty">Qty</th><th class="right">Subtotal</th></tr></thead>
+          <tbody>
+            <tr><td>Chicken</td><td class="right">$13.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Soup (1/2 Gal, Frozen)" data-item="Chicken" data-price="13"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Chili</td><td class="right">$13.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Soup (1/2 Gal, Frozen)" data-item="Chili" data-price="13"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Vegetable Beef</td><td class="right">$13.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Soup (1/2 Gal, Frozen)" data-item="Vegetable Beef" data-price="13"></td><td class="right line-subtotal">$0.00</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Mini Pizza -->
+      <section class="card">
+        <h2>*Pizza (Mini size, Frozen)</h2>
+        <table class="items">
+          <thead><tr><th>Item</th><th class="right">Price</th><th class="qty">Qty</th><th class="right">Subtotal</th></tr></thead>
+          <tbody>
+            <tr><td>Cheese</td><td class="right">$5.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Mini size, Frozen)" data-item="Cheese" data-price="5"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Pepperoni</td><td class="right">$5.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Mini size, Frozen)" data-item="Pepperoni" data-price="5"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Beef</td><td class="right">$5.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Mini size, Frozen)" data-item="Beef" data-price="5"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Canadian Bacon</td><td class="right">$5.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Mini size, Frozen)" data-item="Canadian Bacon" data-price="5"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Supreme</td><td class="right">$7.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Mini size, Frozen)" data-item="Supreme" data-price="7"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>All Meat</td><td class="right">$7.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Mini size, Frozen)" data-item="All Meat" data-price="7"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Breakfast</td><td class="right">$7.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Mini size, Frozen)" data-item="Breakfast" data-price="7"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Chicken Alfredo</td><td class="right">$7.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Mini size, Frozen)" data-item="Chicken Alfredo" data-price="7"></td><td class="right line-subtotal">$0.00</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Regular Pizza -->
+      <section class="card">
+        <h2>*Pizza (Reg size, Frozen)</h2>
+        <table class="items">
+          <thead><tr><th>Item</th><th class="right">Price</th><th class="qty">Qty</th><th class="right">Subtotal</th></tr></thead>
+          <tbody>
+            <tr><td>Cheese</td><td class="right">$12.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Reg size, Frozen)" data-item="Cheese" data-price="12"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Pepperoni</td><td class="right">$12.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Reg size, Frozen)" data-item="Pepperoni" data-price="12"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Beef</td><td class="right">$12.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Reg size, Frozen)" data-item="Beef" data-price="12"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Canadian Bacon</td><td class="right">$12.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Reg size, Frozen)" data-item="Canadian Bacon" data-price="12"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Breakfast</td><td class="right">$14.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Reg size, Frozen)" data-item="Breakfast" data-price="14"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Chicken Alfredo</td><td class="right">$14.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Reg size, Frozen)" data-item="Chicken Alfredo" data-price="14"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Supreme</td><td class="right">$14.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Reg size, Frozen)" data-item="Supreme" data-price="14"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>All Meat</td><td class="right">$14.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Reg size, Frozen)" data-item="All Meat" data-price="14"></td><td class="right line-subtotal">$0.00</td></tr>
+            <tr><td>Chicken Bacon Ranch</td><td class="right">$14.00</td><td class="qty"><input type="number" min="0" step="1" class="qty-input" data-category="Pizza (Reg size, Frozen)" data-item="Chicken Bacon Ranch" data-price="14"></td><td class="right line-subtotal">$0.00</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card total-card">
+        <div class="total-line">
+          <div>Total Cost</div>
+          <div id="grand-total">$0.00</div>
+        </div>
+        <p class="muted sm">
+          **Due to limited freezer space, pizza orders WILL NOT be available for pickup at the bake sale.
+          All pizza orders will be made after the sale and will be available for pickup no later than Nov. 15.**
+        </p>
+      </section>
+
+      <section class="card actions">
+        <button type="submit" class="btn" id="submit-btn">Submit Order</button>
+        <button type="button" class="btn ghost" id="reset-btn">Reset Quantities</button>
+        <p id="status" class="status" aria-live="polite"></p>
+      </section>
+    </form>
+  </main>
+
+  <script src="/script.js"></script>
+</body>
+</html>
 
