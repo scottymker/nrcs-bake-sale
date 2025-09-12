@@ -1,8 +1,20 @@
 // ---------- Config ----------
-const FETCH_URL = '/api/submit-order'; // Netlify Function path (see functions code below)
+const FETCH_URL = '/api/submit-order'; // Netlify Function path
 
 // ---------- Helpers ----------
 const fmt = n => `$${n.toFixed(2)}`;
+
+function inferColumnHeader(input) {
+  const cat = (input.dataset.category || '').toLowerCase();
+  const item = input.dataset.item || '';
+  if (cat.startsWith('stroopwafels')) return 'Stroopwafels'; // 1 column; qty = dozens
+  if (cat.startsWith('pies')) return `Pie - ${item}`;
+  if (cat.startsWith('soup')) return `Soup - ${item} (1/2 Gal)`;
+  if (cat.startsWith('pizza (mini')) return `Mini Pizza - ${item}`;
+  if (cat.startsWith('pizza (reg'))  return `Reg Pizza - ${item}`;
+  return `${input.dataset.category} - ${item}`; // fallback
+}
+
 function compute() {
   let total = 0;
   document.querySelectorAll('tr').forEach(row => {
@@ -23,26 +35,45 @@ function collectOrder() {
   const name = document.querySelector('input[name="customerName"]').value.trim();
   const phone = document.querySelector('input[name="phone"]').value.trim();
 
-  const items = [];
-  document.querySelectorAll('.qty-input').forEach(input => {
-    const qty = Number(input.value || 0);
+  // Build the header list and a quantities map for ALL products (0 if not chosen)
+  const qtyInputs = Array.from(document.querySelectorAll('.qty-input'));
+  const columnHeaders = [];
+  const quantities = {};
+  const itemsChosen = [];
+
+  qtyInputs.forEach(input => {
+    const header = inferColumnHeader(input);
+    if (!columnHeaders.includes(header)) columnHeaders.push(header);
+  });
+
+  qtyInputs.forEach(input => {
+    const header = inferColumnHeader(input);
+    const price = Number(input.dataset.price);
+    const qty = Math.max(0, Number(input.value || 0));
+    if (!(header in quantities)) quantities[header] = 0;
+    quantities[header] += qty; // (for stroopwafels there is only one row anyway)
     if (qty > 0) {
-      items.push({
+      itemsChosen.push({
         category: input.dataset.category,
         item: input.dataset.item,
-        unitPrice: Number(input.dataset.price),
+        unitPrice: price,
         qty,
-        subtotal: Number(input.dataset.price) * qty
+        subtotal: price * qty
       });
     }
   });
 
+  const total = itemsChosen.reduce((s, it) => s + it.subtotal, 0);
+
   return {
     formVersion: '2025-09-12',
     timestamp: new Date().toISOString(),
-    name, phone,
-    items,
-    total: items.reduce((s, it) => s + it.subtotal, 0)
+    name,
+    phone,
+    items: itemsChosen,        // for your records / audits
+    total,
+    columnHeaders,             // exact order for columns in the Sheet
+    quantities                 // { "Stroopwafels": 2, "Pie - Apple": 0, ... }
   };
 }
 
@@ -80,9 +111,7 @@ document.getElementById('order-form').addEventListener('submit', async (e) => {
     });
     if (!res.ok) throw new Error(`Server error ${res.status}`);
     const data = await res.json().catch(() => ({}));
-
     status.textContent = `Thank you! Order ${data.orderId || ''} received.`;
-    // Clear quantities but keep contact info so they can tweak and resubmit if needed.
     document.querySelectorAll('.qty-input').forEach(i => i.value = '');
     compute();
   } catch (err) {
