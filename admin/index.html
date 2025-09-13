@@ -65,11 +65,11 @@
   </div>
 
 <script>
-/* -------- API helper (Netlify function) -------- */
+/* --- API helper (Netlify function) --- */
 const api = (params={}) => {
   const url = new URL('/api/search-orders', location.origin);
-  // server supports q, pickup, since, until, page, pageSize (paid is filtered client-side)
-  const allowed = ['q','pickup','since','until','page','pageSize'];
+  // server supports q, pickup, paid, since, until, page, pageSize
+  const allowed = ['q','pickup','paid','since','until','page','pageSize'];
   for (const [k,v] of Object.entries(params)) {
     if (v != null && v !== '' && allowed.includes(k)) url.searchParams.set(k, v);
   }
@@ -77,8 +77,9 @@ const api = (params={}) => {
 };
 
 function fmtDate(d){ try { return new Date(d).toLocaleString(); } catch { return d; } }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-/* -------- Render -------- */
+/* --- Render using Paid from the sheet --- */
 function render(res, opts) {
   const box  = document.getElementById('results');
   const meta = document.getElementById('meta');
@@ -90,13 +91,10 @@ function render(res, opts) {
     return;
   }
 
-  // Optional client-side "Paid" filter (works even if server doesn’t filter on it)
-  let rows = res.rows || [];
-  if (opts.paid) rows = rows.filter(r => (r.paid || '') === opts.paid);
-
+  const rows = res.rows || [];
   meta.textContent = `Showing ${rows.length} of ${res.total} order(s)` +
-    (opts.paid ? ` • Paid: ${opts.paid}` : '') +
     (opts.pickup ? ` • Pickup: ${opts.pickup}` : '') +
+    (opts.paid ? ` • Paid: ${opts.paid}` : '') +
     (opts.since ? ` • Since ${opts.since}` : '') +
     (opts.until ? ` • Until ${opts.until}` : '');
 
@@ -113,6 +111,7 @@ function render(res, opts) {
       ? r.items.map(it => `<li>${it.item} × <b>${it.qty}</b></li>`).join('')
       : '<li>— no items —</li>';
 
+    // This value is read directly from the Orders tab "Paid" column by the server
     const paidBadge = (r.paid === 'Yes')
       ? '<span class="badge paid">Paid</span>'
       : '<span class="badge unpaid">Unpaid</span>';
@@ -139,14 +138,11 @@ function render(res, opts) {
   });
 }
 
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c =>
-  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-/* -------- Wiring -------- */
+/* --- Wiring --- */
 function runSearch(pushState=true){
   const q      = document.getElementById('q').value.trim();
   const pickup = document.getElementById('pickup').value;
-  const paid   = document.getElementById('paid').value;
+  const paid   = document.getElementById('paid').value;     // <-- send to server
   const since  = document.getElementById('since').value;
   const until  = document.getElementById('until').value;
 
@@ -160,15 +156,15 @@ function runSearch(pushState=true){
     history.replaceState(null, '', u);
   }
 
-  api({ q, pickup, since, until, page:1, pageSize:100 })
-    .then(data => render(data, { paid, pickup, since, until }))
+  api({ q, pickup, paid, since, until, page:1, pageSize:100 })
+    .then(data => render(data, { pickup, paid, since, until }))
     .catch(() => render(null, {}));
 }
 
 document.getElementById('go').addEventListener('click', () => runSearch());
 document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
 
-/* -------- Load with URL params (deep link) -------- */
+/* --- Load with URL params (deep link) --- */
 (function initFromURL(){
   const u = new URL(location.href);
   const get = k => u.searchParams.get(k) || '';
