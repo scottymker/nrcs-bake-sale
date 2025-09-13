@@ -4,105 +4,183 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Orders Admin</title>
-  <!-- Minimal, mobile-first styling -->
   <style>
-    :root { --bg:#0b0b0c; --card:#111215; --fg:#f7f7f7; --muted:#a7acb2; --brand:#47a3ff; }
-    body{margin:0;font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;background:var(--bg);color:var(--fg);}
-    .wrap{max-width:900px;margin:0 auto;padding:16px;}
-    .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
-    .bar input,.bar select,.bar button{height:44px;border-radius:10px;border:1px solid #2a2e33;background:#0f1114;color:var(--fg);padding:0 12px;}
-    .bar input[type="date"]{padding:0 10px;}
-    .bar button{background:var(--brand);border:none;color:#00111e;font-weight:600;cursor:pointer}
+    :root{
+      --bg:#0b0c0f; --card:#111319; --fg:#f4f6f8; --muted:#a7b0ba; --line:#222832;
+      --brand:#47a3ff; --pill:#13283a; --ok:#16321f; --okBorder:#2d6a3b; --okText:#a5e6b5;
+      --warn:#321a1a; --warnBorder:#6a2d2d; --warnText:#ffc7c7;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--fg)}
+    .wrap{max-width:960px;margin:0 auto;padding:16px}
+    h2{margin:6px 0 12px 0;font-weight:700}
+    .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 12px}
+    .bar input,.bar select,.bar button{
+      height:44px;border-radius:10px;border:1px solid var(--line);background:#0e1116;color:var(--fg);padding:0 12px
+    }
+    .bar input[type="date"]{padding:0 10px}
+    .bar input#q{flex:1 1 240px;min-width:200px}
+    .bar button{background:var(--brand);border:none;color:#00121f;font-weight:700;cursor:pointer;padding:0 16px}
+    .meta{color:var(--muted);font-size:13px;margin:0 0 10px}
     .grid{display:grid;gap:12px}
-    .card{background:var(--card);border:1px solid #22252a;border-radius:14px;padding:14px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
     .row1{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-    .badge{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid #2b3138;color:var(--muted)}
-    .pill{background:#142232;color:#9dd1ff}
-    .items{margin:8px 0 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
-    .items li{background:#151a20;border:1px solid #232830;padding:6px 10px;border-radius:10px;font-size:13px}
     .muted{color:var(--muted);font-size:13px}
-    .empty{opacity:.7;text-align:center;padding:40px 10px;border:1px dashed #2a2f35;border-radius:12px}
+    .pill{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;background:var(--pill);color:#9bd2ff;border:1px solid #2a3a4a}
+    .badge{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+    .paid{background:var(--ok);color:var(--okText);border-color:var(--okBorder)}
+    .unpaid{background:var(--warn);color:var(--warnText);border-color:var(--warnBorder)}
+    .items{margin:8px 0 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+    .items li{background:#151b22;border:1px solid var(--line);padding:6px 10px;border-radius:10px;font-size:13px}
+    .empty{opacity:.75;text-align:center;padding:42px 10px;border:1px dashed var(--line);border-radius:12px}
+    a.tel{color:inherit;text-decoration:none;border-bottom:1px dotted var(--line)}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h2 style="margin:0 0 12px 0">Orders Admin</h2>
+    <h2>Orders Admin</h2>
 
     <div class="bar">
-      <input id="q" placeholder="Search name / phone / ORD…" style="flex:1 1 220px" />
+      <input id="q" placeholder="Search name / phone / ORD…" />
       <select id="pickup">
         <option value="">Pickup: Any</option>
         <option value="Yes">Pickup: Yes</option>
         <option value="No">Pickup: No</option>
+      </select>
+      <select id="paid">
+        <option value="">Paid: Any</option>
+        <option value="Yes">Paid: Yes</option>
+        <option value="No">Paid: No</option>
       </select>
       <input id="since" type="date" />
       <input id="until" type="date" />
       <button id="go">Search</button>
     </div>
 
-    <div class="muted" id="meta"></div>
+    <div class="meta" id="meta">Enter a search to see orders.</div>
 
     <div class="grid" id="results">
-      <div class="empty">Enter a search to see orders.</div>
+      <div class="empty">No results yet.</div>
     </div>
   </div>
 
 <script>
+/* -------- API helper (Netlify function) -------- */
 const api = (params={}) => {
   const url = new URL('/api/search-orders', location.origin);
-  Object.entries(params).forEach(([k,v]) => v!=null && v!=='' && url.searchParams.set(k,v));
+  // server supports q, pickup, since, until, page, pageSize (paid is filtered client-side)
+  const allowed = ['q','pickup','since','until','page','pageSize'];
+  for (const [k,v] of Object.entries(params)) {
+    if (v != null && v !== '' && allowed.includes(k)) url.searchParams.set(k, v);
+  }
   return fetch(url).then(r => r.json());
 };
 
-function fmtDate(d){
-  try { return new Date(d).toLocaleString(); } catch { return d; }
-}
+function fmtDate(d){ try { return new Date(d).toLocaleString(); } catch { return d; } }
 
-function render(res){
-  const box = document.getElementById('results');
+/* -------- Render -------- */
+function render(res, opts) {
+  const box  = document.getElementById('results');
   const meta = document.getElementById('meta');
   box.innerHTML = '';
+
   if (!res || !res.ok) {
     meta.textContent = 'Error loading results.';
     box.innerHTML = '<div class="empty">No data.</div>';
     return;
   }
-  meta.textContent = `Showing ${res.rows.length} of ${res.total} order(s)`;
-  if (!res.rows.length) {
+
+  // Optional client-side "Paid" filter (works even if server doesn’t filter on it)
+  let rows = res.rows || [];
+  if (opts.paid) rows = rows.filter(r => (r.paid || '') === opts.paid);
+
+  meta.textContent = `Showing ${rows.length} of ${res.total} order(s)` +
+    (opts.paid ? ` • Paid: ${opts.paid}` : '') +
+    (opts.pickup ? ` • Pickup: ${opts.pickup}` : '') +
+    (opts.since ? ` • Since ${opts.since}` : '') +
+    (opts.until ? ` • Until ${opts.until}` : '');
+
+  if (!rows.length) {
     box.innerHTML = '<div class="empty">No matching orders.</div>';
     return;
   }
-  res.rows.forEach(r => {
+
+  rows.forEach(r => {
     const card = document.createElement('div');
     card.className = 'card';
-    const items = r.items.map(it => `<li>${it.item} × <b>${it.qty}</b></li>`).join('');
+
+    const items = (r.items && r.items.length)
+      ? r.items.map(it => `<li>${it.item} × <b>${it.qty}</b></li>`).join('')
+      : '<li>— no items —</li>';
+
+    const paidBadge = (r.paid === 'Yes')
+      ? '<span class="badge paid">Paid</span>'
+      : '<span class="badge unpaid">Unpaid</span>';
+
     card.innerHTML = `
       <div class="row1">
-        <div><b>${r.name || '(no name)'}</b><div class="muted">${r.phone || ''}</div></div>
-        <div class="badge pill">${r.orderId}</div>
+        <div>
+          <b>${(r.name || '(no name)')}</b>
+          <div class="muted">${r.phone ? `<a class="tel" href="tel:${r.phone.replace(/[^0-9+]/g,'')}">${r.phone}</a>` : ''}</div>
+        </div>
+        <div>
+          <span class="pill">${r.orderId || ''}</span>
+          ${paidBadge}
+        </div>
       </div>
       <div class="muted" style="margin-top:6px">${fmtDate(r.timestamp)}</div>
-      <ul class="items">${items || '<li>— no items —</li>'}</ul>
-      <div style="margin-top:8px" class="muted">
+      <ul class="items">${items}</ul>
+      <div class="muted" style="margin-top:8px">
         Pickup: <b>${r.pickup || '—'}</b>
-        ${r.note ? ` &nbsp; • &nbsp; Note: ${r.note}` : ''}
+        ${r.note ? ` &nbsp; • &nbsp; Note: ${escapeHtml(r.note)}` : ''}
       </div>
     `;
     box.appendChild(card);
   });
 }
 
-document.getElementById('go').addEventListener('click', () => {
-  const q = document.getElementById('q').value.trim();
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* -------- Wiring -------- */
+function runSearch(pushState=true){
+  const q      = document.getElementById('q').value.trim();
   const pickup = document.getElementById('pickup').value;
-  const since = document.getElementById('since').value;
-  const until = document.getElementById('until').value;
-  api({ q, pickup, since, until, page:1, pageSize:100 }).then(render).catch(() => render(null));
-});
+  const paid   = document.getElementById('paid').value;
+  const since  = document.getElementById('since').value;
+  const until  = document.getElementById('until').value;
 
-// Let Enter key trigger search
-document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('go').click(); });
+  if (pushState) {
+    const u = new URL(location.href);
+    u.searchParams.set('q', q);
+    pickup ? u.searchParams.set('pickup', pickup) : u.searchParams.delete('pickup');
+    paid   ? u.searchParams.set('paid', paid)     : u.searchParams.delete('paid');
+    since  ? u.searchParams.set('since', since)   : u.searchParams.delete('since');
+    until  ? u.searchParams.set('until', until)   : u.searchParams.delete('until');
+    history.replaceState(null, '', u);
+  }
 
+  api({ q, pickup, since, until, page:1, pageSize:100 })
+    .then(data => render(data, { paid, pickup, since, until }))
+    .catch(() => render(null, {}));
+}
+
+document.getElementById('go').addEventListener('click', () => runSearch());
+document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
+
+/* -------- Load with URL params (deep link) -------- */
+(function initFromURL(){
+  const u = new URL(location.href);
+  const get = k => u.searchParams.get(k) || '';
+  document.getElementById('q').value      = get('q');
+  document.getElementById('pickup').value = get('pickup');
+  document.getElementById('paid').value   = get('paid');
+  document.getElementById('since').value  = get('since');
+  document.getElementById('until').value  = get('until');
+  if (get('q') || get('pickup') || get('paid') || get('since') || get('until')) {
+    runSearch(false);
+  }
+})();
 </script>
 </body>
 </html>
