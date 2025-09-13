@@ -55,9 +55,7 @@
   </main>
 
 <script>
-/* ===========================================================
-   ONLY CHANGE: switch to HTTP Basic Authorization for the API
-   =========================================================== */
+/* ============ Basic Authorization (unchanged behavior) ============ */
 const BASIC_KEY_STORAGE = 'admin_basic_b64';
 
 function ensureBasicCreds() {
@@ -81,7 +79,6 @@ async function apiSearch(params) {
   });
 
   if (res.status === 401) {
-    // bad or changed credentials -> clear and surface an error
     sessionStorage.removeItem(BASIC_KEY_STORAGE);
     throw new Error('unauthorized');
   }
@@ -89,7 +86,7 @@ async function apiSearch(params) {
   return res.json();
 }
 
-/* ---------------- Existing UI logic (unchanged) ---------------- */
+/* ---------------- UI helpers (hardened) ---------------- */
 const els = {
   q:      document.getElementById('q'),
   pickup: document.getElementById('pickup'),
@@ -102,6 +99,11 @@ const els = {
   list:   document.getElementById('list'),
   signout:document.getElementById('signoutBtn'),
 };
+
+function yesish(v){
+  const s = String(v ?? '').trim().toLowerCase();
+  return s === 'yes' || s === 'y' || s === 'true' || s === 'paid';
+}
 
 function badge(text, cls=''){ const b=document.createElement('span'); b.className='badge '+cls; b.textContent=text; return b; }
 
@@ -116,13 +118,19 @@ function orderCard(o){
     </div>`;
   const right = document.createElement('div');
   right.appendChild(badge(o.orderId || ''));
-  right.appendChild(badge(o.paid === 'Yes' ? 'Paid' : 'Unpaid', o.paid === 'Yes' ? 'positive' : 'warn'));
+  const paidYes = yesish(o.paid ?? o.paidVal);
+  right.appendChild(badge(paidYes ? 'Paid' : 'Unpaid', paidYes ? 'positive' : 'warn'));
   head.appendChild(right);
   card.appendChild(head);
 
   const chips = document.createElement('div'); chips.className='chips';
-  // expects items like: { qty, itemName, category }
-  (o.items || []).forEach(it => chips.appendChild(badge(`${it.qty}× ${it.itemName} (${it.category})`)));
+  // Robust field fallbacks so labels never show "undefined"
+  (o.items || []).forEach(it => {
+    const qty = it.qty ?? it.q ?? 0;
+    const name = it.itemName ?? it.item ?? it.product ?? it.header ?? it.name ?? '—';
+    const cat = it.category ?? it.cat ?? '';
+    chips.appendChild(badge(`${qty}× ${name}${cat ? ` (${cat})` : ''}`));
+  });
   card.appendChild(chips);
 
   const foot = document.createElement('div'); foot.className='card-f';
@@ -142,8 +150,8 @@ async function runSearch(){
       from: els.from.value,
       to: els.to.value
     });
-    els.meta.textContent = `Showing ${data.rows.length} of ${data.total} order(s)`;
-    data.rows.forEach(o => els.list.appendChild(orderCard(o)));
+    els.meta.textContent = `Showing ${data.rows?.length ?? 0} of ${data.total ?? 0} order(s)`;
+    (data.rows || []).forEach(o => els.list.appendChild(orderCard(o)));
   }catch(err){
     els.meta.textContent = 'Error: ' + err.message;
   }
@@ -152,6 +160,8 @@ async function runSearch(){
 els.search.addEventListener('click', runSearch);
 els.clear.addEventListener('click', () => { els.from.value=''; els.to.value=''; });
 els.signout.addEventListener('click', () => { sessionStorage.removeItem(BASIC_KEY_STORAGE); location.reload(); });
+
+// initial load
 runSearch();
 </script>
 </body>
