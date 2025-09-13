@@ -117,25 +117,20 @@
         </table>
       </section>
 
-      <!-- Pickup confirmation -->
-<section class="card">
+      <section class="card">
   <h2>Pickup Confirmation</h2>
-  <p class="muted sm">
-    Are you planning to pick up and pay for your order at the bake sale on <b>Oct 18th</b>?
-  </p>
+  <p class="muted sm">Are you planning to pick up and pay for your order at the bake sale on <b>Oct 18th</b>?</p>
 
-  <div class="grid2" role="radiogroup" aria-label="Pickup on Oct 18">
-    <label class="field">
-      <span>Pickup?</span>
-      <div>
-        <label style="margin-right:14px;">
-          <input type="radio" name="pickup" value="Yes"> Yes
-        </label>
-        <label>
-          <input type="radio" name="pickup" value="No"> No
-        </label>
-      </div>
-    </label>
+  <div class="grid2">
+    <fieldset class="field" style="border:0;padding:0;margin:0">
+      <legend style="font-weight:600;margin-bottom:6px">Pickup?</legend>
+      <label style="margin-right:14px;">
+        <input type="radio" name="pickup" value="Yes"> Yes
+      </label>
+      <label>
+        <input type="radio" name="pickup" value="No"> No
+      </label>
+    </fieldset>
 
     <label class="field hidden" id="delivery-note-wrap">
       <span>Please let us know how we can get your items to you</span>
