@@ -7,7 +7,7 @@ export async function handler(event) {
   }
 
   const base = (process.env.GAS_WEBAPP_URL || '').trim();
-  const key  = (process.env.ADMIN_SEARCH_KEY || '').trim(); // same value as ADMIN_KEY in Apps Script
+  const key  = (process.env.ADMIN_SEARCH_KEY || '').trim(); // same as ADMIN_KEY in Apps Script
 
   if (!base || !/\/exec$/.test(base)) {
     return { statusCode: 500, body: JSON.stringify({ ok:false, error:'GAS_WEBAPP_URL invalid (must end with /exec)' }) };
@@ -22,6 +22,7 @@ export async function handler(event) {
     key,
     q: p.q || '',
     pickup: p.pickup || '',
+    paid: p.paid || '',            // <-- forward Paid to the server
     since: p.since || '',
     until: p.until || '',
     page: p.page || '1',
