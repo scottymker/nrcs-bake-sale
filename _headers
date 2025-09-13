@@ -1,0 +1,5 @@
+/admin/*
+  Basic-Auth: admin:Testing
+
+/api/search-orders
+  Basic-Auth: admin:Testing
