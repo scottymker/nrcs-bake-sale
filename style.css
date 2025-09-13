@@ -31,3 +31,6 @@ body{font-family:Inter,system-ui,Arial,sans-serif;color:var(--ink);background:va
 .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
 .btn:disabled{opacity:.6;cursor:not-allowed}
 .status{min-height:1.25rem;color:var(--muted)}
+
+.hidden{display:none}
+.field textarea{width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:1rem; resize:vertical}
