@@ -5,4 +5,4 @@
   Basic-Auth: admin:Testing
 
 /.netlify/functions/search-orders
-  Basic-Auth: admin:REPLACE_WITH_STRONG_PASSWORD
+  Basic-Auth: admin:Testing
