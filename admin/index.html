@@ -2,185 +2,261 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Orders Admin</title>
   <style>
-    :root{
-      --bg:#0b0c0f; --card:#111319; --fg:#f4f6f8; --muted:#a7b0ba; --line:#222832;
-      --brand:#47a3ff; --pill:#13283a; --ok:#16321f; --okBorder:#2d6a3b; --okText:#a5e6b5;
-      --warn:#321a1a; --warnBorder:#6a2d2d; --warnText:#ffc7c7;
+    :root {
+      color-scheme: dark;
+      --bg: #0f1115;
+      --panel: #141821;
+      --muted: #8b95a7;
+      --text: #e8eefc;
+      --chip: #1c2230;
+      --chipText: #d5def1;
+      --accent: #3b82f6;
+      --ok: #18b26b;
+      --bad: #d14b4b;
+      --border: #202838;
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--fg)}
-    .wrap{max-width:960px;margin:0 auto;padding:16px}
-    h2{margin:6px 0 12px 0;font-weight:700}
-    .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 12px}
-    .bar input,.bar select,.bar button{
-      height:44px;border-radius:10px;border:1px solid var(--line);background:#0e1116;color:#f4f6f8;padding:0 12px
+    body{
+      margin:0;
+      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+      background: var(--bg);
+      color: var(--text);
     }
-    .bar input[type="date"]{padding:0 10px}
-    .bar input#q{flex:1 1 240px;min-width:200px}
-    .bar button{background:var(--brand);border:none;color:#00121f;font-weight:700;cursor:pointer;padding:0 16px}
-    .meta{color:var(--muted);font-size:13px;margin:0 0 10px}
-    .grid{display:grid;gap:12px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
-    .row1{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-    .muted{color:var(--muted);font-size:13px}
-    .pill{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;background:var(--pill);color:#9bd2ff;border:1px solid #2a3a4a}
-    .badge{display:inline-block;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
-    .paid{background:var(--ok);color:var(--okText);border-color:var(--okBorder)}
-    .unpaid{background:var(--warn);color:var(--warnText);border-color:var(--warnBorder)}
-    .items{margin:8px 0 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
-    .items li{background:#151b22;border:1px solid var(--line);padding:6px 10px;border-radius:10px;font-size:13px}
-    .item-cat{color:var(--muted)}
-    .empty{opacity:.75;text-align:center;padding:42px 10px;border:1px dashed var(--line);border-radius:12px}
-    a.tel{color:inherit;text-decoration:none;border-bottom:1px dotted var(--line)}
+    .wrap{max-width:1000px;margin:32px auto;padding:0 16px}
+    h1{margin:0 0 18px 0;font-weight:800;letter-spacing:.3px}
+    .toolbar{
+      display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px 0
+    }
+    .toolbar input[type="text"],
+    .toolbar input[type="date"],
+    .toolbar select{
+      background:var(--panel);border:1px solid var(--border);
+      color:var(--text);border-radius:10px;padding:10px 12px;outline:none;
+      min-width: 180px;
+    }
+    .btn{
+      background:var(--accent);border:none;color:white;border-radius:10px;
+      padding:10px 14px;font-weight:600;cursor:pointer
+    }
+    .btn.secondary{background:#263149}
+    .muted{color:var(--muted)}
+    .count{margin:6px 0 14px 0}
+    .card{
+      background:var(--panel);border:1px solid var(--border);
+      border-radius:18px;padding:16px 16px 12px 16px;margin-bottom:12px;
+      position:relative
+    }
+    .row1{display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .who{display:flex;flex-direction:column;gap:2px}
+    .who .name{font-weight:800;font-size:20px}
+    .who a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--muted)}
+    .badges{display:flex;gap:8px;flex-wrap:wrap}
+    .badge{
+      background:#1a2437;color:#cfe0ff;border:1px solid #2a3956;
+      padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700
+    }
+    .badge.paid{background:#0f2a22;border-color:#1f6b53;color:#a6f0cf}
+    .badge.unpaid{background:#2a1414;border-color:#5c2a2a;color:#ffcccc}
+    .time{font-size:14px;margin-top:4px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 8px}
+    .chip{
+      background:var(--chip);color:var(--chipText);
+      border:1px solid var(--border);
+      padding:7px 10px;border-radius:12px;font-weight:700;font-size:13px
+    }
+    .foot{display:flex;gap:10px;flex-wrap:wrap;font-size:14px;margin-top:6px}
+    .right{display:flex;gap:8px;align-items:center}
+    .link{color:#9db6ff;text-decoration:none}
+    .auth{
+      display:flex;gap:8px;align-items:center;margin-left:auto
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h2>Orders Admin</h2>
+    <div class="row1" style="margin-bottom:10px">
+      <h1>Orders Admin</h1>
+      <div class="auth">
+        <button id="signout" class="btn secondary" title="Forget saved key">Sign out</button>
+      </div>
+    </div>
 
-    <div class="bar">
-      <input id="q" placeholder="Search name / phone / ORD…" />
+    <div class="toolbar">
+      <input id="q" type="text" placeholder="Search name / phone / ORDER…" />
       <select id="pickup">
-        <option value="">Pickup: Any</option>
-        <option value="Yes">Pickup: Yes</option>
-        <option value="No">Pickup: No</option>
+        <option>Pickup: Any</option>
+        <option>Pickup: Yes</option>
+        <option>Pickup: No</option>
       </select>
       <select id="paid">
-        <option value="">Paid: Any</option>
-        <option value="Yes">Paid: Yes</option>
-        <option value="No">Paid: No</option>
+        <option>Paid: Any</option>
+        <option>Paid: Paid</option>
+        <option>Paid: Unpaid</option>
       </select>
       <input id="since" type="date" />
       <input id="until" type="date" />
-      <button id="go">Search</button>
+      <button id="search" class="btn">Search</button>
+      <button id="clearDates" class="btn secondary">Clear dates</button>
     </div>
 
-    <div class="meta" id="meta">Enter a search to see orders.</div>
-
-    <div class="grid" id="results">
-      <div class="empty">No results yet.</div>
-    </div>
+    <div id="count" class="count muted"></div>
+    <div id="list"></div>
   </div>
 
 <script>
-const api = (params={}) => {
-  const url = new URL('/api/search-orders', location.origin);
-  const allowed = ['q','pickup','paid','since','until','page','pageSize'];
-  for (const [k,v] of Object.entries(params)) {
-    if (v != null && v !== '' && allowed.includes(k)) url.searchParams.set(k, v);
+/* ====== SET YOUR GAS WEB APP URL (ends with /exec) ====== */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyZf_hw_0Z6fVYtElv6OqlY8eeetOMMNvRL5Wd3tpuHMrnzjlAkmgx_zWTrOjp2Ea3s/exec';
+/* ======================================================== */
+
+/* Admin key prompt (stored locally, compared server-side) */
+const KEY_STORAGE = 'nrcs_admin_key';
+function getKey() {
+  let k = localStorage.getItem(KEY_STORAGE);
+  if (!k) {
+    k = (prompt('Admin key? (stored only in this browser)') || '').trim();
+    if (!k) return null;
+    localStorage.setItem(KEY_STORAGE, k);
   }
-  return fetch(url).then(r => r.json());
-};
+  return k;
+}
+document.getElementById('signout').addEventListener('click', () => {
+  localStorage.removeItem(KEY_STORAGE);
+  alert('Key cleared. Reloading…');
+  location.reload();
+});
 
-function fmtDate(d){ try { return new Date(d).toLocaleString(); } catch { return d; } }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+/* UI elements */
+const $q = document.getElementById('q');
+const $pickup = document.getElementById('pickup');
+const $paid = document.getElementById('paid');
+const $since = document.getElementById('since');
+const $until = document.getElementById('until');
+const $search = document.getElementById('search');
+const $clearDates = document.getElementById('clearDates');
+const $list = document.getElementById('list');
+const $count = document.getElementById('count');
 
-function render(res, opts) {
-  const box  = document.getElementById('results');
-  const meta = document.getElementById('meta');
-  box.innerHTML = '';
+/* Helpers */
+function fmtDateTime(s){
+  const d = new Date(s);
+  if (isNaN(d)) return s || '—';
+  return d.toLocaleString();
+}
+function make(el, cls, text){
+  const e = document.createElement(el);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+function chip(text){ return make('span','chip',text); }
 
-  if (!res || !res.ok) {
-    meta.textContent = 'Error loading results.';
-    box.innerHTML = '<div class="empty">No data.</div>';
-    return;
+/* Build query to GAS */
+async function fetchOrders(){
+  const key = getKey();
+  if (!key) return;
+
+  const params = new URLSearchParams();
+  params.set('action','admin');
+  params.set('key', key);
+
+  const qv = ($q.value || '').trim();
+  if (qv) params.set('q', qv);
+
+  const p = $pickup.value;
+  if (p === 'Pickup: Yes') params.set('pickup','Yes');
+  if (p === 'Pickup: No')  params.set('pickup','No');
+
+  const pd = $paid.value;
+  if (pd === 'Paid: Paid')   params.set('paid','Yes');
+  if (pd === 'Paid: Unpaid') params.set('paid','No');
+
+  if ($since.value) params.set('since', $since.value);
+  if ($until.value) params.set('until', $until.value);
+
+  const url = `${GAS_URL}?${params.toString()}`;
+  const res = await fetch(url);
+  const json = await res.json();
+
+  if (!json.ok) {
+    throw new Error(json.error || 'Request failed');
   }
+  return json;
+}
 
-  const rows = res.rows || [];
-  meta.textContent = `Showing ${rows.length} of ${res.total} order(s)` +
-    (opts.pickup ? ` • Pickup: ${opts.pickup}` : '') +
-    (opts.paid ? ` • Paid: ${opts.paid}` : '') +
-    (opts.since ? ` • Since ${opts.since}` : '') +
-    (opts.until ? ` • Until ${opts.until}` : '');
+/* Render */
+function renderList(rows, total){
+  $list.innerHTML = '';
+  $count.textContent = `Showing ${rows.length} of ${total} order(s)`;
 
-  if (!rows.length) {
-    box.innerHTML = '<div class="empty">No matching orders.</div>';
-    return;
-  }
+  rows.forEach(row => {
+    const card = make('div','card');
 
-  rows.forEach(r => {
-    const card = document.createElement('div');
-    card.className = 'card';
+    // header
+    const head = make('div','row1');
+    const who = make('div','who');
+    who.appendChild(make('div','name', row.name || '—'));
+    const tel = row.phone ? make('a','', row.phone) : make('span','muted','—');
+    if (row.phone) tel.href = `tel:${row.phone.replace(/\D+/g,'')}`;
+    who.appendChild(tel);
+    who.appendChild(make('div','time muted', fmtDateTime(row.timestamp)));
+    head.appendChild(who);
 
-    const items = (r.items && r.items.length)
-      ? r.items.map(it => {
-          const qty = Number(it.qty || 0);
-          const item = escapeHtml(String(it.item || ''));
-          const cat  = String(it.category || '').trim();
-          const catSpan = cat ? ` <span class="item-cat">(${escapeHtml(cat)})</span>` : '';
-          return `<li><b>${qty}×</b> ${item}${catSpan}</li>`;
-        }).join('')
-      : '<li>— no items —</li>';
+    const badges = make('div','badges');
+    const oid = make('span','badge', row.orderId || '—');
+    badges.appendChild(oid);
 
-    const isPaid = String(r.paid || '').trim().toLowerCase() === 'yes';
-    const paidBadge = isPaid
-      ? '<span class="badge paid">Paid</span>'
-      : '<span class="badge unpaid">Unpaid</span>';
+    const isPaid = (row.paid || '').toString().trim().toLowerCase() === 'yes';
+    const paidBadge = make('span', `badge ${isPaid ? 'paid':'unpaid'}`, isPaid ? 'Paid' : 'Unpaid');
+    badges.appendChild(paidBadge);
 
-    card.innerHTML = `
-      <div class="row1">
-        <div>
-          <b>${(r.name || '(no name)')}</b>
-          <div class="muted">${r.phone ? `<a class="tel" href="tel:${r.phone.replace(/[^0-9+]/g,'')}">${r.phone}</a>` : ''}</div>
-        </div>
-        <div>
-          <span class="pill">${r.orderId || ''}</span>
-          ${paidBadge}
-        </div>
-      </div>
-      <div class="muted" style="margin-top:6px">${fmtDate(r.timestamp)}</div>
-      <ul class="items">${items}</ul>
-      <div class="muted" style="margin-top:8px">
-        Pickup: <b>${r.pickup || '—'}</b>
-        ${r.note ? ` &nbsp; • &nbsp; Note: ${escapeHtml(r.note)}` : ''}
-      </div>
-    `;
-    box.appendChild(card);
+    head.appendChild(badges);
+    card.appendChild(head);
+
+    // chips (ALWAYS use API-supplied item name + category)
+    const chips = make('div','chips');
+    (row.items || []).forEach(it => {
+      const itemName = (it.item ?? '').toString().trim();
+      const cat      = (it.category ?? '').toString().trim();
+      const txt = `${it.qty}× ${itemName}${cat ? ` (${cat})` : ''}`;
+      chips.appendChild(chip(txt));
+    });
+    card.appendChild(chips);
+
+    // footer (pickup/note)
+    const foot = make('div','foot');
+    foot.appendChild(make('div','', 'Pickup: '));
+    foot.appendChild(make('div','muted', row.pickup ? row.pickup : '—'));
+    if (row.note) {
+      foot.appendChild(make('div','muted','•'));
+      foot.appendChild(make('div','', `Note: ${row.note}`));
+    }
+    card.appendChild(foot);
+
+    $list.appendChild(card);
   });
 }
 
-function runSearch(pushState=true){
-  const q      = document.getElementById('q').value.trim();
-  const pickup = document.getElementById('pickup').value;
-  const paid   = document.getElementById('paid').value;
-  const since  = document.getElementById('since').value;
-  const until  = document.getElementById('until').value;
+/* Wire up */
+$search.addEventListener('click', run);
+$clearDates.addEventListener('click', () => { $since.value=''; $until.value=''; run(); });
+$q.addEventListener('keydown', (e)=>{ if(e.key==='Enter') run(); });
 
-  if (pushState) {
-    const u = new URL(location.href);
-    u.searchParams.set('q', q);
-    pickup ? u.searchParams.set('pickup', pickup) : u.searchParams.delete('pickup');
-    paid   ? u.searchParams.set('paid', paid)     : u.searchParams.delete('paid');
-    since  ? u.searchParams.set('since', since)   : u.searchParams.delete('since');
-    until  ? u.searchParams.set('until', until)   : u.searchParams.delete('until');
-    history.replaceState(null, '', u);
+async function run(){
+  try{
+    $count.textContent = 'Loading…';
+    const data = await fetchOrders();
+    renderList(data.rows || [], data.total || 0);
+  }catch(err){
+    $count.textContent = '';
+    $list.innerHTML = `<div class="muted">Error: ${err.message}</div>`;
   }
-
-  api({ q, pickup, paid, since, until, page:1, pageSize:100 })
-    .then(data => render(data, { pickup, paid, since, until }))
-    .catch(() => render(null, {}));
 }
-document.getElementById('go').addEventListener('click', () => runSearch());
-document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
-['pickup','paid','since','until'].forEach(id => {
-  document.getElementById(id).addEventListener('change', () => runSearch());
-});
 
-(function initFromURL(){
-  const u = new URL(location.href);
-  const get = k => u.searchParams.get(k) || '';
-  document.getElementById('q').value      = get('q');
-  document.getElementById('pickup').value = get('pickup');
-  document.getElementById('paid').value   = get('paid');
-  document.getElementById('since').value  = get('since');
-  document.getElementById('until').value  = get('until');
-  if (get('q') || get('pickup') || get('paid') || get('since') || get('until')) {
-    runSearch(false);
-  }
-})();
+/* First load */
+run();
 </script>
 </body>
 </html>
