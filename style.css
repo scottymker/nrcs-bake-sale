@@ -33,4 +33,8 @@ body{font-family:Inter,system-ui,Arial,sans-serif;color:var(--ink);background:va
 .status{min-height:1.25rem;color:var(--muted)}
 
 .hidden{display:none}
-.field textarea{width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:1rem; resize:vertical}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.field select,
+.field textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:1rem}
+.field textarea{resize:vertical}
+
