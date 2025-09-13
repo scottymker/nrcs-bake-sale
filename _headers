@@ -3,3 +3,6 @@
 
 /api/search-orders
   Basic-Auth: admin:Testing
+
+/.netlify/functions/search-orders
+  Basic-Auth: admin:REPLACE_WITH_STRONG_PASSWORD
