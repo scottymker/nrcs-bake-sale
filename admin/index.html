@@ -4,259 +4,147 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Orders Admin</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #0f1115;
-      --panel: #141821;
-      --muted: #8b95a7;
-      --text: #e8eefc;
-      --chip: #1c2230;
-      --chipText: #d5def1;
-      --accent: #3b82f6;
-      --ok: #18b26b;
-      --bad: #d14b4b;
-      --border: #202838;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-    .wrap{max-width:1000px;margin:32px auto;padding:0 16px}
-    h1{margin:0 0 18px 0;font-weight:800;letter-spacing:.3px}
-    .toolbar{
-      display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px 0
-    }
-    .toolbar input[type="text"],
-    .toolbar input[type="date"],
-    .toolbar select{
-      background:var(--panel);border:1px solid var(--border);
-      color:var(--text);border-radius:10px;padding:10px 12px;outline:none;
-      min-width: 180px;
-    }
-    .btn{
-      background:var(--accent);border:none;color:white;border-radius:10px;
-      padding:10px 14px;font-weight:600;cursor:pointer
-    }
-    .btn.secondary{background:#263149}
-    .muted{color:var(--muted)}
-    .count{margin:6px 0 14px 0}
-    .card{
-      background:var(--panel);border:1px solid var(--border);
-      border-radius:18px;padding:16px 16px 12px 16px;margin-bottom:12px;
-      position:relative
-    }
-    .row1{display:flex;justify-content:space-between;gap:12px;align-items:center}
-    .who{display:flex;flex-direction:column;gap:2px}
-    .who .name{font-weight:800;font-size:20px}
-    .who a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--muted)}
-    .badges{display:flex;gap:8px;flex-wrap:wrap}
-    .badge{
-      background:#1a2437;color:#cfe0ff;border:1px solid #2a3956;
-      padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700
-    }
-    .badge.paid{background:#0f2a22;border-color:#1f6b53;color:#a6f0cf}
-    .badge.unpaid{background:#2a1414;border-color:#5c2a2a;color:#ffcccc}
-    .time{font-size:14px;margin-top:4px}
-    .chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 8px}
-    .chip{
-      background:var(--chip);color:var(--chipText);
-      border:1px solid var(--border);
-      padding:7px 10px;border-radius:12px;font-weight:700;font-size:13px
-    }
-    .foot{display:flex;gap:10px;flex-wrap:wrap;font-size:14px;margin-top:6px}
-    .right{display:flex;gap:8px;align-items:center}
-    .link{color:#9db6ff;text-decoration:none}
-    .auth{
-      display:flex;gap:8px;align-items:center;margin-left:auto
-    }
-  </style>
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <div class="wrap">
-    <div class="row1" style="margin-bottom:10px">
-      <h1>Orders Admin</h1>
-      <div class="auth">
-        <button id="signout" class="btn secondary" title="Forget saved key">Sign out</button>
-      </div>
-    </div>
+  <main class="wrap">
+    <h1>Orders Admin</h1>
 
-    <div class="toolbar">
-      <input id="q" type="text" placeholder="Search name / phone / ORDER…" />
+    <div class="controls">
+      <input id="q" placeholder="Search name / phone / ORD…" />
       <select id="pickup">
-        <option>Pickup: Any</option>
-        <option>Pickup: Yes</option>
-        <option>Pickup: No</option>
+        <option value="">Pickup: Any</option>
+        <option value="Yes">Pickup: Yes</option>
+        <option value="No">Pickup: No</option>
       </select>
       <select id="paid">
-        <option>Paid: Any</option>
-        <option>Paid: Paid</option>
-        <option>Paid: Unpaid</option>
+        <option value="">Paid: Any</option>
+        <option value="Yes">Paid: Yes</option>
+        <option value="No">Paid: No</option>
       </select>
-      <input id="since" type="date" />
-      <input id="until" type="date" />
-      <button id="search" class="btn">Search</button>
-      <button id="clearDates" class="btn secondary">Clear dates</button>
+      <input id="from" type="date" />
+      <input id="to" type="date" />
+      <button id="searchBtn">Search</button>
+      <button id="clearBtn">Clear dates</button>
+      <button id="signoutBtn" class="right">Sign out</button>
     </div>
 
-    <div id="count" class="count muted"></div>
+    <p id="meta"></p>
     <div id="list"></div>
-  </div>
+  </main>
 
 <script>
-/* ====== SET YOUR GAS WEB APP URL (ends with /exec) ====== */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyZf_hw_0Z6fVYtElv6OqlY8eeetOMMNvRL5Wd3tpuHMrnzjlAkmgx_zWTrOjp2Ea3s/exec';
-/* ======================================================== */
+/* ---------- BASIC AUTH HELPER ---------- */
+/* We store a Base64 "username:password" in sessionStorage so every fetch carries it. */
+const BASIC_KEY_STORAGE = 'admin_basic_b64';
 
-/* Admin key prompt (stored locally, compared server-side) */
-const KEY_STORAGE = 'nrcs_admin_key';
-function getKey() {
-  let k = localStorage.getItem(KEY_STORAGE);
-  if (!k) {
-    k = (prompt('Admin key? (stored only in this browser)') || '').trim();
-    if (!k) return null;
-    localStorage.setItem(KEY_STORAGE, k);
+/* Prompt once if we don't have creds yet */
+function ensureBasicCreds() {
+  let b64 = sessionStorage.getItem(BASIC_KEY_STORAGE);
+  if (!b64) {
+    const raw = window.prompt('Enter "username:password" for admin (e.g. admin:Testing)');
+    if (!raw) throw new Error('No credentials entered');
+    b64 = btoa(raw.trim());
+    sessionStorage.setItem(BASIC_KEY_STORAGE, b64);
   }
-  return k;
-}
-document.getElementById('signout').addEventListener('click', () => {
-  localStorage.removeItem(KEY_STORAGE);
-  alert('Key cleared. Reloading…');
-  location.reload();
-});
-
-/* UI elements */
-const $q = document.getElementById('q');
-const $pickup = document.getElementById('pickup');
-const $paid = document.getElementById('paid');
-const $since = document.getElementById('since');
-const $until = document.getElementById('until');
-const $search = document.getElementById('search');
-const $clearDates = document.getElementById('clearDates');
-const $list = document.getElementById('list');
-const $count = document.getElementById('count');
-
-/* Helpers */
-function fmtDateTime(s){
-  const d = new Date(s);
-  if (isNaN(d)) return s || '—';
-  return d.toLocaleString();
-}
-function make(el, cls, text){
-  const e = document.createElement(el);
-  if (cls) e.className = cls;
-  if (text != null) e.textContent = text;
-  return e;
-}
-function chip(text){ return make('span','chip',text); }
-
-/* Build query to GAS */
-async function fetchOrders(){
-  const key = getKey();
-  if (!key) return;
-
-  const params = new URLSearchParams();
-  params.set('action','admin');
-  params.set('key', key);
-
-  const qv = ($q.value || '').trim();
-  if (qv) params.set('q', qv);
-
-  const p = $pickup.value;
-  if (p === 'Pickup: Yes') params.set('pickup','Yes');
-  if (p === 'Pickup: No')  params.set('pickup','No');
-
-  const pd = $paid.value;
-  if (pd === 'Paid: Paid')   params.set('paid','Yes');
-  if (pd === 'Paid: Unpaid') params.set('paid','No');
-
-  if ($since.value) params.set('since', $since.value);
-  if ($until.value) params.set('until', $until.value);
-
-  const url = `${GAS_URL}?${params.toString()}`;
-  const res = await fetch(url);
-  const json = await res.json();
-
-  if (!json.ok) {
-    throw new Error(json.error || 'Request failed');
-  }
-  return json;
+  return b64;
 }
 
-/* Render */
-function renderList(rows, total){
-  $list.innerHTML = '';
-  $count.textContent = `Showing ${rows.length} of ${total} order(s)`;
+/* Add Authorization header to every call */
+async function apiSearch(params) {
+  const b64 = ensureBasicCreds();
+  const url = new URL('/api/search-orders', location.origin);
+  Object.entries(params).forEach(([k,v]) => { if (v) url.searchParams.set(k, v); });
 
-  rows.forEach(row => {
-    const card = make('div','card');
-
-    // header
-    const head = make('div','row1');
-    const who = make('div','who');
-    who.appendChild(make('div','name', row.name || '—'));
-    const tel = row.phone ? make('a','', row.phone) : make('span','muted','—');
-    if (row.phone) tel.href = `tel:${row.phone.replace(/\D+/g,'')}`;
-    who.appendChild(tel);
-    who.appendChild(make('div','time muted', fmtDateTime(row.timestamp)));
-    head.appendChild(who);
-
-    const badges = make('div','badges');
-    const oid = make('span','badge', row.orderId || '—');
-    badges.appendChild(oid);
-
-    const isPaid = (row.paid || '').toString().trim().toLowerCase() === 'yes';
-    const paidBadge = make('span', `badge ${isPaid ? 'paid':'unpaid'}`, isPaid ? 'Paid' : 'Unpaid');
-    badges.appendChild(paidBadge);
-
-    head.appendChild(badges);
-    card.appendChild(head);
-
-    // chips (ALWAYS use API-supplied item name + category)
-    const chips = make('div','chips');
-    (row.items || []).forEach(it => {
-      const itemName = (it.item ?? '').toString().trim();
-      const cat      = (it.category ?? '').toString().trim();
-      const txt = `${it.qty}× ${itemName}${cat ? ` (${cat})` : ''}`;
-      chips.appendChild(chip(txt));
-    });
-    card.appendChild(chips);
-
-    // footer (pickup/note)
-    const foot = make('div','foot');
-    foot.appendChild(make('div','', 'Pickup: '));
-    foot.appendChild(make('div','muted', row.pickup ? row.pickup : '—'));
-    if (row.note) {
-      foot.appendChild(make('div','muted','•'));
-      foot.appendChild(make('div','', `Note: ${row.note}`));
-    }
-    card.appendChild(foot);
-
-    $list.appendChild(card);
+  const res = await fetch(url, {
+    headers: { 'Authorization': 'Basic ' + b64 }
   });
+
+  if (res.status === 401) {
+    // creds wrong or expired
+    sessionStorage.removeItem(BASIC_KEY_STORAGE);
+    throw new Error('unauthorized');
+  }
+  if (!res.ok) throw new Error('Server error ' + res.status);
+  return res.json();
 }
 
-/* Wire up */
-$search.addEventListener('click', run);
-$clearDates.addEventListener('click', () => { $since.value=''; $until.value=''; run(); });
-$q.addEventListener('keydown', (e)=>{ if(e.key==='Enter') run(); });
+/* ---------- UI ---------- */
+const els = {
+  q:      document.getElementById('q'),
+  pickup: document.getElementById('pickup'),
+  paid:   document.getElementById('paid'),
+  from:   document.getElementById('from'),
+  to:     document.getElementById('to'),
+  search: document.getElementById('searchBtn'),
+  clear:  document.getElementById('clearBtn'),
+  meta:   document.getElementById('meta'),
+  list:   document.getElementById('list'),
+  signout:document.getElementById('signoutBtn'),
+};
 
-async function run(){
-  try{
-    $count.textContent = 'Loading…';
-    const data = await fetchOrders();
-    renderList(data.rows || [], data.total || 0);
-  }catch(err){
-    $count.textContent = '';
-    $list.innerHTML = `<div class="muted">Error: ${err.message}</div>`;
+function badge(text) {
+  const b = document.createElement('span');
+  b.className = 'badge';
+  b.textContent = text;
+  return b;
+}
+
+function orderCard(o) {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const h = document.createElement('div');
+  h.className = 'card-h';
+  h.innerHTML = `<div><div class="name">${o.name}</div>
+                 <a href="tel:${o.phone}">${o.phone}</a>
+                 <div class="ts">${new Date(o.timestamp).toLocaleString()}</div></div>`;
+  const right = document.createElement('div');
+  right.appendChild(badge(o.orderId));
+  right.appendChild(badge(o.paid === 'Yes' ? 'Paid' : 'Unpaid'));
+  h.appendChild(right);
+  card.appendChild(h);
+
+  const items = document.createElement('div');
+  items.className = 'chips';
+  for (const it of (o.items || [])) {
+    // it looks like: { qty, itemName, category }
+    items.appendChild(badge(`${it.qty}× ${it.itemName} (${it.category})`));
+  }
+  card.appendChild(items);
+
+  const foot = document.createElement('div');
+  foot.className = 'card-f';
+  foot.innerHTML = `Pickup: <b>${o.pickup || '—'}</b>${o.deliveryNote ? ' • Note: ' + o.deliveryNote : ''}`;
+  card.appendChild(foot);
+
+  return card;
+}
+
+async function runSearch() {
+  els.meta.textContent = '';
+  els.list.innerHTML = '';
+  try {
+    const data = await apiSearch({
+      q: els.q.value.trim(),
+      pickup: els.pickup.value,
+      paid: els.paid.value,
+      from: els.from.value,
+      to: els.to.value
+    });
+    els.meta.textContent = `Showing ${data.rows.length} of ${data.total} order(s)`;
+    data.rows.forEach(o => els.list.appendChild(orderCard(o)));
+  } catch (e) {
+    els.meta.textContent = 'Error: ' + e.message;
   }
 }
 
-/* First load */
-run();
+els.search.addEventListener('click', runSearch);
+els.clear.addEventListener('click', () => { els.from.value=''; els.to.value=''; });
+els.signout.addEventListener('click', () => { sessionStorage.removeItem(BASIC_KEY_STORAGE); location.reload(); });
+
+/* Auto-run on load */
+runSearch();
 </script>
 </body>
 </html>
