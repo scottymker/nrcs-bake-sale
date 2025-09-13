@@ -1,3 +1,36 @@
+// ==== ORDER WINDOW ====
+/**
+ * Close at 2025-09-27 00:00 Central Time (CDT = UTC-5 on that date).
+ * Using UTC epoch so it works from any browser timezone.
+ */
+const CUTOFF_UTC_MS = Date.UTC(2025, 8, 27, 5, 0, 0); // months 0-based -> Sept=8
+const CLOSED_MSG = "Pre-orders are closed as of Sat, Sept 27 at 12:00 AM CT. Thank you!";
+
+function orderingClosed() {
+  return Date.now() >= CUTOFF_UTC_MS;
+}
+
+function lockFormUI() {
+  const form = document.getElementById("order-form");
+  if (!form) return;
+  // disable every control inside the form
+  form.querySelectorAll("input, select, textarea, button").forEach(el => el.disabled = true);
+  // status message
+  const status = document.getElementById("status");
+  if (status) status.textContent = CLOSED_MSG;
+  // optional: visually mute the submit button
+  document.getElementById("submit-btn")?.classList.add("disabled");
+}
+
+// Enforce immediately on load and at the exact cutoff moment if the page is open
+document.addEventListener("DOMContentLoaded", () => {
+  if (orderingClosed()) {
+    lockFormUI();
+  } else {
+    setTimeout(lockFormUI, CUTOFF_UTC_MS - Date.now());
+  }
+});
+
 // ---------- Config ----------
 const FETCH_URL = "/api/submit-order"; // Netlify Function path
 
