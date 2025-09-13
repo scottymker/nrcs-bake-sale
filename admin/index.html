@@ -79,7 +79,7 @@ const api = (params={}) => {
 function fmtDate(d){ try { return new Date(d).toLocaleString(); } catch { return d; } }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-/* --- Render using Paid from the sheet --- */
+/* --- Render --- */
 function render(res, opts) {
   const box  = document.getElementById('results');
   const meta = document.getElementById('meta');
@@ -111,8 +111,8 @@ function render(res, opts) {
       ? r.items.map(it => `<li>${it.item} × <b>${it.qty}</b></li>`).join('')
       : '<li>— no items —</li>';
 
-    // This value is read directly from the Orders tab "Paid" column by the server
-    const paidBadge = (r.paid === 'Yes')
+    const isPaid = String(r.paid || '').trim().toLowerCase() === 'yes';
+    const paidBadge = isPaid
       ? '<span class="badge paid">Paid</span>'
       : '<span class="badge unpaid">Unpaid</span>';
 
@@ -142,7 +142,7 @@ function render(res, opts) {
 function runSearch(pushState=true){
   const q      = document.getElementById('q').value.trim();
   const pickup = document.getElementById('pickup').value;
-  const paid   = document.getElementById('paid').value;     // <-- send to server
+  const paid   = document.getElementById('paid').value;
   const since  = document.getElementById('since').value;
   const until  = document.getElementById('until').value;
 
@@ -160,11 +160,13 @@ function runSearch(pushState=true){
     .then(data => render(data, { pickup, paid, since, until }))
     .catch(() => render(null, {}));
 }
-
 document.getElementById('go').addEventListener('click', () => runSearch());
 document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(); });
+['pickup','paid','since','until'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => runSearch());
+});
 
-/* --- Load with URL params (deep link) --- */
+/* --- Deep link init --- */
 (function initFromURL(){
   const u = new URL(location.href);
   const get = k => u.searchParams.get(k) || '';
