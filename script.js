@@ -1,9 +1,7 @@
 // ==== ORDER WINDOW ====
-/**
- * Close at 2025-09-27 00:00 Central Time (CDT = UTC-5 on that date).
- * Using UTC epoch so it works from any browser timezone.
- */
-const CUTOFF_UTC_MS = Date.UTC(2025, 8, 27, 5, 0, 0); // months 0-based -> Sept=8
+// Close at 2025-09-27 00:00 Central Time (CDT = UTC-5 on that date).
+// Use a UTC timestamp so this works from any browser timezone.
+const CUTOFF_UTC_MS = Date.UTC(2025, 8, 27, 5, 0, 0); // months are 0-based: Sept = 8
 const CLOSED_MSG = "Pre-orders are closed as of Sat, Sept 27 at 12:00 AM CT. Thank you!";
 
 function orderingClosed() {
@@ -13,12 +11,9 @@ function orderingClosed() {
 function lockFormUI() {
   const form = document.getElementById("order-form");
   if (!form) return;
-  // disable every control inside the form
-  form.querySelectorAll("input, select, textarea, button").forEach(el => el.disabled = true);
-  // status message
+  form.querySelectorAll("input, select, textarea, button").forEach(el => (el.disabled = true));
   const status = document.getElementById("status");
   if (status) status.textContent = CLOSED_MSG;
-  // optional: visually mute the submit button
   document.getElementById("submit-btn")?.classList.add("disabled");
 }
 
@@ -27,7 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (orderingClosed()) {
     lockFormUI();
   } else {
-    setTimeout(lockFormUI, CUTOFF_UTC_MS - Date.now());
+    const ms = CUTOFF_UTC_MS - Date.now();
+    if (ms > 0) setTimeout(lockFormUI, ms);
   }
 });
 
@@ -162,6 +158,13 @@ document.getElementById("order-form")?.addEventListener("submit", async (e) => {
   const status = document.getElementById("status");
   const btn = document.getElementById("submit-btn");
 
+  // Cutoff guard on the client
+  if (orderingClosed()) {
+    if (status) status.textContent = CLOSED_MSG;
+    lockFormUI();
+    return;
+  }
+
   const order = collectOrder();
 
   // Validation
@@ -191,9 +194,18 @@ document.getElementById("order-form")?.addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(order),
     });
-    if (!res.ok) throw new Error(`Server error ${res.status}`);
-    const data = await res.json().catch(() => ({}));
 
+    // If server says "closed", show message and lock UI.
+    if (res.status === 403) {
+      const data = await res.json().catch(() => ({}));
+      if (status) status.textContent = data.message || CLOSED_MSG;
+      lockFormUI();
+      return;
+    }
+
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+    const data = await res.json().catch(() => ({}));
     if (status) status.textContent = `Thank you! Order ${data.orderId || ""} received.`;
 
     // Reset selections (keep Name/Phone so they can adjust if needed)
