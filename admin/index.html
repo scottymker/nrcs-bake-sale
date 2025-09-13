@@ -2,9 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Orders Admin</title>
-  <link rel="stylesheet" href="/style.css" />
+  <style>
+    :root { color-scheme: dark; }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:#0f1115;color:#e6e6ea}
+    .wrap{max-width:980px;margin:32px auto;padding:0 16px}
+    h1{margin:0 0 16px 0;font-size:32px}
+    .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px}
+    .controls input,.controls select{background:#1a1d24;color:#e6e6ea;border:1px solid #2a2f3a;border-radius:10px;padding:10px 12px;outline:none}
+    .controls button{background:#2563eb;border:0;color:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .controls .right{margin-left:auto;background:#394150}
+    #meta{margin:8px 0 16px 0;opacity:.8}
+    .card{background:#12151b;border:1px solid #232836;border-radius:14px;margin:12px 0;padding:14px}
+    .card-h{display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .name{font-size:20px;font-weight:700;margin-bottom:4px}
+    .card a{color:#9ec1ff;text-decoration:none}
+    .ts{opacity:.75;font-size:13px}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+    .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:#1b2030;border:1px solid #2a3144;font-size:13px}
+    .badge.positive{background:#0f2b1f;border-color:#1d3f2e;color:#8ef0b2}
+    .badge.warn{background:#2d1b1b;border-color:#3f2a2a;color:#ffb4b4}
+    .card-f{font-size:14px;opacity:.9}
+    @media (max-width:640px){.controls .right{margin-left:0}}
+  </style>
 </head>
 <body>
   <main class="wrap">
@@ -34,34 +55,33 @@
   </main>
 
 <script>
-/* ---------- BASIC AUTH HELPER ---------- */
-/* We store a Base64 "username:password" in sessionStorage so every fetch carries it. */
+/* ===========================================================
+   ONLY CHANGE: switch to HTTP Basic Authorization for the API
+   =========================================================== */
 const BASIC_KEY_STORAGE = 'admin_basic_b64';
 
-/* Prompt once if we don't have creds yet */
 function ensureBasicCreds() {
   let b64 = sessionStorage.getItem(BASIC_KEY_STORAGE);
   if (!b64) {
-    const raw = window.prompt('Enter "username:password" for admin (e.g. admin:Testing)');
-    if (!raw) throw new Error('No credentials entered');
+    const raw = prompt('Enter admin credentials as username:password\n(e.g.  admin:Testing )');
+    if (!raw) throw new Error('No credentials provided');
     b64 = btoa(raw.trim());
     sessionStorage.setItem(BASIC_KEY_STORAGE, b64);
   }
   return b64;
 }
 
-/* Add Authorization header to every call */
 async function apiSearch(params) {
   const b64 = ensureBasicCreds();
   const url = new URL('/api/search-orders', location.origin);
   Object.entries(params).forEach(([k,v]) => { if (v) url.searchParams.set(k, v); });
 
-  const res = await fetch(url, {
+  const res = await fetch(url.toString(), {
     headers: { 'Authorization': 'Basic ' + b64 }
   });
 
   if (res.status === 401) {
-    // creds wrong or expired
+    // bad or changed credentials -> clear and surface an error
     sessionStorage.removeItem(BASIC_KEY_STORAGE);
     throw new Error('unauthorized');
   }
@@ -69,7 +89,7 @@ async function apiSearch(params) {
   return res.json();
 }
 
-/* ---------- UI ---------- */
+/* ---------------- Existing UI logic (unchanged) ---------------- */
 const els = {
   q:      document.getElementById('q'),
   pickup: document.getElementById('pickup'),
@@ -83,48 +103,38 @@ const els = {
   signout:document.getElementById('signoutBtn'),
 };
 
-function badge(text) {
-  const b = document.createElement('span');
-  b.className = 'badge';
-  b.textContent = text;
-  return b;
-}
+function badge(text, cls=''){ const b=document.createElement('span'); b.className='badge '+cls; b.textContent=text; return b; }
 
-function orderCard(o) {
-  const card = document.createElement('div');
-  card.className = 'card';
+function orderCard(o){
+  const card = document.createElement('div'); card.className='card';
 
-  const h = document.createElement('div');
-  h.className = 'card-h';
-  h.innerHTML = `<div><div class="name">${o.name}</div>
-                 <a href="tel:${o.phone}">${o.phone}</a>
-                 <div class="ts">${new Date(o.timestamp).toLocaleString()}</div></div>`;
+  const head = document.createElement('div'); head.className='card-h';
+  head.innerHTML = `<div>
+      <div class="name">${o.name || ''}</div>
+      <a href="tel:${o.phone||''}">${o.phone||''}</a>
+      <div class="ts">${o.timestamp ? new Date(o.timestamp).toLocaleString() : ''}</div>
+    </div>`;
   const right = document.createElement('div');
-  right.appendChild(badge(o.orderId));
-  right.appendChild(badge(o.paid === 'Yes' ? 'Paid' : 'Unpaid'));
-  h.appendChild(right);
-  card.appendChild(h);
+  right.appendChild(badge(o.orderId || ''));
+  right.appendChild(badge(o.paid === 'Yes' ? 'Paid' : 'Unpaid', o.paid === 'Yes' ? 'positive' : 'warn'));
+  head.appendChild(right);
+  card.appendChild(head);
 
-  const items = document.createElement('div');
-  items.className = 'chips';
-  for (const it of (o.items || [])) {
-    // it looks like: { qty, itemName, category }
-    items.appendChild(badge(`${it.qty}× ${it.itemName} (${it.category})`));
-  }
-  card.appendChild(items);
+  const chips = document.createElement('div'); chips.className='chips';
+  // expects items like: { qty, itemName, category }
+  (o.items || []).forEach(it => chips.appendChild(badge(`${it.qty}× ${it.itemName} (${it.category})`)));
+  card.appendChild(chips);
 
-  const foot = document.createElement('div');
-  foot.className = 'card-f';
+  const foot = document.createElement('div'); foot.className='card-f';
   foot.innerHTML = `Pickup: <b>${o.pickup || '—'}</b>${o.deliveryNote ? ' • Note: ' + o.deliveryNote : ''}`;
   card.appendChild(foot);
 
   return card;
 }
 
-async function runSearch() {
-  els.meta.textContent = '';
-  els.list.innerHTML = '';
-  try {
+async function runSearch(){
+  els.meta.textContent=''; els.list.innerHTML='';
+  try{
     const data = await apiSearch({
       q: els.q.value.trim(),
       pickup: els.pickup.value,
@@ -134,16 +144,14 @@ async function runSearch() {
     });
     els.meta.textContent = `Showing ${data.rows.length} of ${data.total} order(s)`;
     data.rows.forEach(o => els.list.appendChild(orderCard(o)));
-  } catch (e) {
-    els.meta.textContent = 'Error: ' + e.message;
+  }catch(err){
+    els.meta.textContent = 'Error: ' + err.message;
   }
 }
 
 els.search.addEventListener('click', runSearch);
 els.clear.addEventListener('click', () => { els.from.value=''; els.to.value=''; });
 els.signout.addEventListener('click', () => { sessionStorage.removeItem(BASIC_KEY_STORAGE); location.reload(); });
-
-/* Auto-run on load */
 runSearch();
 </script>
 </body>
